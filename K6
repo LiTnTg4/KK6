@@ -343,7 +343,7 @@ tbc.CornerRadius = UDim.new(0, ss(12))
 tbc.Parent = tb
 
 local tt = Instance.new("TextLabel")
-tt.Text = "Reming功能菜单"
+tt.Text = "Reming祝大家天天开心👁️👅👁️"
 tt.TextColor3 = Color3.fromRGB(210, 215, 255)
 tt.TextSize = ss(15)
 tt.Font = Enum.Font.GothamBold
@@ -472,7 +472,7 @@ ftc.Parent = ft
 local ftt = Instance.new("TextLabel")
 ftt.Size = UDim2.new(1, -ss(10), 1, 0)
 ftt.Position = UDim2.new(0, ss(5), 0, 0)
-ftt.Text = "【无头功能自启动】断腿/画质可开关"
+ftt.Text = "【无头功能自启动】断腿要手动/快给我找小妹妹👁️"
 ftt.TextColor3 = Color3.fromRGB(180, 190, 220)
 ftt.TextSize = ss(13)
 ftt.Font = Enum.Font.GothamBold
