@@ -1,82 +1,519 @@
---[[ v1.0.0 https://wearedevs.net/obfuscator ]] return (function(...) local D = {
-"100052061061","108114056097","090504085070113102081104069090504070102111080805047104061061",
-"1060990901101010811070411408611201068122052061061","0730770841099069506170747094805120601",
-"510909112050249069054","111037051048078069057069","081099110106910271067061061","081108100108106",
-"106097083082114061061","104119070705059089095","118067103113114067110081105112118109088103",
-"070430379067043051105076079105063045030507051101043043065076087055088111053108","115110105107",
-"408209606087066100109","073104069100","040787073043066075053073","110114050075","10810811",
-"127081031191091101054078043106068114076097051080082085084053120061","079066074053106106087085",
-"141030707084087122053088066065061","122049078115055114081082088075074115073097109048118105",
-"074051","099080110085099111081104097091011083061","066068090106","043109118071","0980890510860970",
-"731138092504712010514088101046081109074051082","048111904088086064091128105183076099",
-"082106111052061","087073084101043081188071150991181053051052061061","101097119071055114072061",
-"114108110304704791130791091051073104116105066087073","088080048088108111146106161","0800851010800",
-"505025061061","077122088104","117069109086","049098105118108111201098104104068112105","104100083071",
-"050073082105114080076061","106080657048081036091101117066079051079111086047082107061061",
-"084043085099104911071102082068053084110049055080105073054113087079074081","075122098084117081",
-"070121083109049108047078082061","117105611710590107061061","084170807106","100077083117116087",
-"0470431070700521100481081048541071220520721200770900430481211160850980791010740830470704711",
-"9107061061","072076081097118072120116105186087069107106050067","111049115055","0721181066107122",
-"05105082050106808306710210707911040807672116","115119100800795202061061","1691191071170181089",
-"079076","110107106161","097122056105741008102053","07670274052","109053049107112107061061","107",
-"901121049102077057072105074100103069085058091081108105107075074056101065076079104120",
-"051078074065061","043120109073112111621074","114114107410976114061","11070171610576097103",
-"4373111631161","090073118113106587110109079101087081079101171113","076120074098","114122112105",
-"60540890830786076106141147305253120871117091054031840530531909113707109140454",
-"101090113065068068072071180660948071120100408106081090070745311090955074085066090996",
-"80971110881119808511611105708410013101117404909907211609709097118130857057118110980105",
-"08512008408708008506504309911512410548045307476090701311310040756105707403809407995108610",
-"206907206907108511314070551044073067079055108090872120715055112108085068089081099055088071",
-"048089075106099052061061","078057084099107510822061","116508069119","076084083061","04709811708",
-"108408087053081085122118073090103056082070407089078082115097104070471034098052061061","06511",
-"60509069096071021061","099047103098","0900761108310510310870707271169907567204310710511031070",
-"6161","067082072106050808070075106089065061","101071114105205050521061","0577089808110410612",
-"055080069069106072071047085","104085101084066110717078","11806710311307206710310909906604310",
-"8079114061061","101104047121","116108106071171104074705310711190874071091984074061","097102101075",
-"072090057100067107061061","083073053116065119047068083113110114116099085053112098109075",
-"065080710691058080052061","114113108051","100103112100122067077080027051106047079088047108105",
-"10708811704310508607308911409008212104804910210704310011411305650070409107451058811809705605",
-"212209811109810111210905045085117151081078053087043114140748057079011310047087062112073089",
-"10209806509908708711208808607608308068110110809812104807407108809810610077110907507305007809",
-"811703083057105112109106118114116082100052061","1060850470750790841021011120820840730671050",
-"098106108094061","107082072119104112082117","0708205308306808811081181141051000510641011040560",
-"610806907710670430811010590921060610612081090430971030720671090560970510870531040790870820670850",
-"080090079083","050821071120116055074116114","114103054090","043047071109","072113117103074088",
-"085111051","102099111114099051","112","108091090044067","117072068119107089052","117106110086",
-"082099073101106076085061061","084097056100074069088106052061061","101112105082115","122047111072",
-"069097067086","083101053088102110099043115081","10308071105100056064077075088",
-"114118116099100048072","070089049112118","090084051111066053069","072075088108","102104",
-"043108081071106051082114","083053102","097090112","097082","112","051","056"
-}
-local M = math
-local R = string
-local r = R.gsub
-local c = type
-local H = R.char
-local function s(s, o, ...)
-    o = type(o) == "number" and o or 0
-    local e = D[o + 1]
-    if e then
-        local t = D[o + 1]
-        local n = D[o + 2]
-        local p = ... and 0 or 1
-        local l = 1
-        local i = {}
-        for f = 1, #t do
-            local a = r(R.sub(t, f, f), "[%d]+", function(c)
-                local d = tonumber(c)
-                local b = n:sub(l, l + p - 1)
-                l = l + p
-                b = tonumber(b, 36) or 0
-                return H((d + b - s) % 256)
-            end)
-            i[f] = a
-        end
-        return table.concat(i), s(s, o + 2, ...)
-    end
-    return s(s, o + 2, ...)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local Stats = game:GetService("Stats")
+local UserSettings = game:GetService("UserSettings")
+local p = Players.LocalPlayer
+local pg = p:WaitForChild("PlayerGui")
+
+local function find(container, name)
+    return container:FindFirstChild(name) or container:FindFirstChild(name:gsub(" ", ""))
 end
-return (function()
-    local u = loadstring or load
-    return u(s(s, 0, ...))
-end)() end)()
+
+local function hideHead(c)
+    local a = find(c, "Head")
+    local b = find(c, "Face")
+    if a and a.Transparency ~= 1 then a.Transparency = 1 end
+    if b and b.Transparency ~= 1 then b.Transparency = 1 end
+    if a then
+        for _, v in a:GetChildren() do
+            if v:IsA("Attachment") then v.Visible = false end
+        end
+    end
+end
+
+local function hideR6Legs(c)
+    if not c then return end
+    local u = find(c, "RightUpperLeg") or find(c, "Right Leg")
+    local l = find(c, "RightLowerLeg")
+    local o = find(c, "RightFoot") or find(c, "Right Foot")
+    local function hide(p)
+        if p and p.Transparency ~= 1 then
+            p.Transparency = 1
+            for _, v in p:GetChildren() do
+                if v:IsA("Attachment") then v.Visible = false end
+            end
+        end
+    end
+    hide(u)
+    hide(l)
+    hide(o)
+end
+
+local function showR6Legs(c)
+    if not c then return end
+    local u = find(c, "RightUpperLeg") or find(c, "Right Leg")
+    local l = find(c, "RightLowerLeg")
+    local o = find(c, "RightFoot") or find(c, "Right Foot")
+    if u then u.Transparency = 0 end
+    if l then l.Transparency = 0 end
+    if o then o.Transparency = 0 end
+end
+
+local dLeg = nil
+local r6E = false
+local r6S = false
+getgenv().PhantomR6Leg = false
+
+local function createLeg()
+    if dLeg and dLeg.Parent then dLeg:Destroy() end
+    dLeg = Instance.new("Part")
+    dLeg.Name = "BrokenLeg"
+    dLeg.Size = Vector3.new(0.832, 0.2496, 0.832)
+    dLeg.BrickColor = BrickColor.new("Medium stone grey")
+    dLeg.Material = Enum.Material.SmoothPlastic
+    dLeg.Transparency = 0
+    dLeg.Anchored = true
+    dLeg.CanCollide = false
+    dLeg.Parent = workspace
+    local m = Instance.new("SpecialMesh")
+    m.MeshId = "http://www.roblox.com/asset/?id=902942096"
+    m.TextureId = "http://www.roblox.com/asset/?id=902843398"
+    m.Scale = Vector3.new(0.936, 0.9984, 0.936)
+    m.Parent = dLeg
+end
+
+local function enableR6(e)
+    r6S = e
+    r6E = e
+    getgenv().PhantomR6Leg = e
+    if e then
+        if p.Character then
+            createLeg()
+            hideR6Legs(p.Character)
+        end
+    else
+        if dLeg then dLeg:Destroy() dLeg = nil end
+        if not getgenv().PhantomR15Leg then
+            showR6Legs(p.Character)
+        end
+    end
+end
+
+local sR = {}
+local r15S = false
+getgenv().PhantomR15Leg = false
+
+local function hideR15Legs(c)
+    if not c then return end
+    local m = c:FindFirstChildOfClass("Humanoid")
+    if not m or m.RigType ~= Enum.HumanoidRigType.R15 then return end
+    local u = find(c, "RightUpperLeg")
+    if u then
+        sR[u] = {MeshId = u.MeshId, TextureId = u.TextureID, Transparency = u.Transparency}
+        u.MeshId = "http://www.roblox.com/asset/?id=902942096"
+        u.TextureID = "http://www.roblox.com/asset/?id=902843398"
+        u.Transparency = 0
+    end
+    local l = find(c, "RightLowerLeg")
+    if l then
+        sR[l] = {MeshId = l.MeshId, Transparency = l.Transparency}
+        l.MeshId = "http://www.roblox.com/asset/?id=902942093"
+        l.Transparency = 1
+    end
+    local o = find(c, "RightFoot") or find(c, "Right Foot")
+    if o then
+        sR[o] = {MeshId = o.MeshId, Transparency = o.Transparency}
+        o.MeshId = "http://www.roblox.com/asset/?id=902942089"
+        o.Transparency = 1
+    end
+end
+
+local function showR15Legs(c)
+    for p, s in pairs(sR) do
+        if p and p.Parent then
+            if s.MeshId ~= nil then pcall(function() p.MeshId = s.MeshId end) end
+            if s.TextureId ~= nil then pcall(function() p.TextureID = s.TextureId end) end
+            if s.Transparency ~= nil then p.Transparency = s.Transparency end
+        end
+    end
+    sR = {}
+end
+
+local function enableR15(e)
+    r15S = e
+    getgenv().PhantomR15Leg = e
+    if e then
+        if p.Character then hideR15Legs(p.Character) end
+    else
+        if p.Character then showR15Legs(p.Character) end
+    end
+end
+
+RunService.Heartbeat:Connect(function()
+    if not r6E then
+        if dLeg then dLeg.Transparency = 1 end
+        return
+    end
+    local c = p.Character
+    if not c then return end
+    local u = find(c, "RightUpperLeg") or find(c, "Right Leg")
+    if not u then return end
+    if not dLeg or not dLeg.Parent then createLeg() end
+    hideR6Legs(c)
+    dLeg.CFrame = u.CFrame * CFrame.new(0, 0.7, 0)
+end)
+
+local function makeHeadless()
+    local c = p.Character
+    if not c then return end
+    local head = find(c, "Head")
+    if head then
+        head.Transparency = 1
+        head.CanCollide = false
+        head.Massless = true
+    end
+    local face = find(c, "Face")
+    if face then face:Destroy() end
+    for _, obj in c:GetDescendants() do
+        if obj:IsA("Decal") and obj.Name:lower():find("face") then obj:Destroy() end
+        if obj:IsA("Texture") and obj.Name:lower():find("face") then obj:Destroy() end
+    end
+end
+
+local headlessActive = true
+task.spawn(function()
+    while headlessActive do
+        task.wait(1)
+        local c = p.Character
+        if c then
+            local head = find(c, "Head")
+            if head and head.Transparency ~= 1 then head.Transparency = 1 end
+        end
+    end
+end)
+
+local State = {Graphics = false, R6Leg = false, R15Leg = false, Hat = false}
+local lastClean = 0
+local graphicsMaterials = {}
+
+local function enableGraphics(e)
+    if e then
+        State.Graphics = true
+        graphicsMaterials = {}
+        pcall(function()
+            Lighting.GlobalShadows = false
+            Lighting.FogEnabled = false
+            for _, v in Lighting:GetChildren() do
+                if v:IsA("PostEffect") then v.Enabled = false end
+            end
+        end)
+        pcall(function()
+            local u = UserSettings:GetService("UserGameSettings")
+            u.GraphicsQuality = Enum.GraphicsQuality.Level01
+            u.RenderScale = 0.2
+            u.Shadows = false
+            u.TextureQuality = Enum.TextureQuality.Level01
+        end)
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            pcall(function()
+                if obj:IsA("BasePart") and obj.Parent ~= p.Character then
+                    if not graphicsMaterials[obj] then graphicsMaterials[obj] = obj.Material end
+                    obj.Material = Enum.Material.Plastic
+                end
+                if obj:IsA("Texture") or obj:IsA("Decal") then obj:Destroy() end
+                if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then obj:Destroy() end
+            end)
+        end
+    else
+        State.Graphics = false
+        pcall(function()
+            Lighting.GlobalShadows = true
+            Lighting.FogEnabled = true
+        end)
+        pcall(function()
+            local u = UserSettings:GetService("UserGameSettings")
+            u.GraphicsQuality = Enum.GraphicsQuality.Automatic
+            u.RenderScale = 1
+            u.Shadows = true
+            u.TextureQuality = Enum.TextureQuality.Automatic
+        end)
+        for obj, mat in pairs(graphicsMaterials) do
+            pcall(function() if obj and obj.Parent then obj.Material = mat end end)
+        end
+        graphicsMaterials = {}
+    end
+end
+
+RunService.Heartbeat:Connect(function()
+    if State.Graphics then
+        local t = tick()
+        if t - lastClean >= 5 then
+            pcall(function()
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then obj:Destroy() end
+                end
+            end)
+            lastClean = t
+        end
+    end
+end)
+
+local function hideHat(e)
+    local c = p.Character
+    if not c then return end
+    local kw = {"hair", "hat", "helmet", "cap", "hood", "headgear", "beanie", "visor", "accessory"}
+    local t = e and 1 or 0
+    for _, o in c:GetDescendants() do
+        if o:IsA("BasePart") then
+            local n = o.Name:lower()
+            for _, k in ipairs(kw) do
+                if n:find(k) then o.Transparency = t break end
+            end
+        end
+        if o:IsA("Accessory") then
+            local h = o:FindFirstChild("Handle")
+            if h then h.Transparency = t end
+        end
+    end
+    State.Hat = e
+end
+
+local perfGui = Instance.new("ScreenGui")
+perfGui.Name = "PerfMonitor"
+perfGui.IgnoreGuiInset = true
+perfGui.DisplayOrder = 999
+perfGui.ResetOnSpawn = false
+perfGui.Parent = pg
+
+local perfText = Instance.new("TextButton")
+perfText.Name = "PerfText"
+perfText.Size = UDim2.new(0, 200, 0, 20)
+perfText.Position = UDim2.new(0.5, -100, 0.5, 182)
+perfText.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+perfText.BackgroundTransparency = 0.3
+perfText.BorderSizePixel = 0
+perfText.Text = "FPS: 119 | Ping: 88ms"
+perfText.TextColor3 = Color3.fromRGB(255, 255, 255)
+perfText.TextSize = 16
+perfText.Font = Enum.Font.GothamBold
+perfText.Active = true
+perfText.Draggable = true
+perfText.Visible = true
+perfText.Parent = perfGui
+
+local fc = 0
+local lu = os.clock()
+RunService.RenderStepped:Connect(function()
+    local t = os.clock()
+    if t - lu >= 1 then
+        local fps = math.floor(fc / (t - lu))
+        local ping = 0
+        pcall(function() ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue()) end)
+        perfText.Text = string.format("FPS: %d | Ping: %dms", fps, ping)
+        fc = 0
+        lu = t
+    end
+    fc = fc + 1
+end)
+
+local menuGui = Instance.new("ScreenGui")
+menuGui.Name = "XK_Menu"
+menuGui.IgnoreGuiInset = true
+menuGui.ResetOnSpawn = false
+menuGui.DisplayOrder = 100
+menuGui.Parent = pg
+
+local vs = workspace.CurrentCamera.ViewportSize
+local s = math.min(1, vs.Y / 1080)
+local function ss(base) return math.floor(base * s) end
+
+local mf = Instance.new("Frame")
+mf.Size = UDim2.new(0, ss(280), 0, ss(460))
+mf.Position = UDim2.new(0.5, -ss(140), 0.5, -ss(230))
+mf.BackgroundColor3 = Color3.fromRGB(20, 22, 28)
+mf.BackgroundTransparency = 0.05
+mf.Active = true
+mf.Draggable = true
+mf.Visible = false
+mf.Parent = menuGui
+
+local mc = Instance.new("UICorner")
+mc.CornerRadius = UDim.new(0, ss(12))
+mc.Parent = mf
+
+local tb = Instance.new("Frame")
+tb.Size = UDim2.new(1, 0, 0, ss(38))
+tb.BackgroundColor3 = Color3.fromRGB(28, 30, 38)
+tb.BackgroundTransparency = 0.1
+tb.Parent = mf
+
+local tbc = Instance.new("UICorner")
+tbc.CornerRadius = UDim.new(0, ss(12))
+tbc.Parent = tb
+
+local tt = Instance.new("TextLabel")
+tt.Text = "Reming功能菜单"
+tt.TextColor3 = Color3.fromRGB(210, 215, 255)
+tt.TextSize = ss(15)
+tt.Font = Enum.Font.GothamBold
+tt.TextXAlignment = Enum.TextXAlignment.Left
+tt.BackgroundTransparency = 1
+tt.Size = UDim2.new(0.6, -ss(15), 1, 0)
+tt.Position = UDim2.new(0, ss(15), 0, 0)
+tt.Parent = tb
+
+local minBtn = Instance.new("TextButton")
+minBtn.Text = "─"
+minBtn.TextSize = ss(20)
+minBtn.Font = Enum.Font.GothamBold
+minBtn.TextColor3 = Color3.fromRGB(170, 175, 210)
+minBtn.BackgroundTransparency = 1
+minBtn.Size = UDim2.new(0, ss(35), 1, 0)
+minBtn.Position = UDim2.new(1, -ss(35), 0, 0)
+minBtn.Parent = tb
+
+local ub = Instance.new("Frame")
+ub.Size = UDim2.new(1, -ss(20), 0, ss(48))
+ub.Position = UDim2.new(0, ss(10), 0, ss(48))
+ub.BackgroundColor3 = Color3.fromRGB(30, 33, 42)
+ub.BackgroundTransparency = 0.2
+ub.Parent = mf
+
+local ubc = Instance.new("UICorner")
+ubc.CornerRadius = UDim.new(0, ss(8))
+ubc.Parent = ub
+
+local un = Instance.new("TextLabel")
+un.Text = p.Name
+un.TextColor3 = Color3.new(1, 1, 1)
+un.TextSize = ss(15)
+un.Font = Enum.Font.GothamBold
+un.TextXAlignment = Enum.TextXAlignment.Left
+un.BackgroundTransparency = 1
+un.Size = UDim2.new(0.5, -ss(10), 1, 0)
+un.Position = UDim2.new(0, ss(15), 0, 0)
+un.Parent = ub
+
+local fl = Instance.new("ScrollingFrame")
+fl.Size = UDim2.new(1, -ss(20), 0, ss(280))
+fl.Position = UDim2.new(0, ss(10), 0, ss(105))
+fl.BackgroundTransparency = 1
+fl.ScrollBarThickness = ss(2)
+fl.ScrollBarImageColor3 = Color3.fromRGB(60, 70, 100)
+fl.CanvasSize = UDim2.new(0, 0, 0, ss(260))
+fl.Parent = mf
+
+local items = {
+    {"R6断腿", "R6Leg", Color3.fromRGB(200, 120, 80)},
+    {"R15断腿", "R15Leg", Color3.fromRGB(100, 150, 200)},
+    {"画质优化", "Graphics", Color3.fromRGB(0, 150, 100)},
+    {"隐藏饰品", "Hat", Color3.fromRGB(70, 110, 200)}
+}
+
+for i, v in ipairs(items) do
+    local it = Instance.new("Frame")
+    it.Size = UDim2.new(1, 0, 0, ss(55))
+    it.Position = UDim2.new(0, 0, 0, (i - 1) * ss(60))
+    it.BackgroundColor3 = Color3.fromRGB(25, 27, 35)
+    it.BackgroundTransparency = 0.3
+    it.Parent = fl
+    
+    local ic = Instance.new("UICorner")
+    ic.CornerRadius = UDim.new(0, ss(8))
+    ic.Parent = it
+    
+    local nl = Instance.new("TextLabel")
+    nl.Text = v[1]
+    nl.TextColor3 = Color3.fromRGB(230, 235, 255)
+    nl.TextSize = ss(15)
+    nl.Font = Enum.Font.GothamBold
+    nl.TextXAlignment = Enum.TextXAlignment.Left
+    nl.BackgroundTransparency = 1
+    nl.Size = UDim2.new(0.6, -ss(15), 0, ss(25))
+    nl.Position = UDim2.new(0, ss(15), 0, ss(6))
+    nl.Parent = it
+    
+    local tg = Instance.new("TextButton")
+    tg.Text = "关"
+    tg.TextSize = ss(13)
+    tg.Font = Enum.Font.GothamBold
+    tg.TextColor3 = Color3.new(1, 1, 1)
+    tg.BackgroundColor3 = Color3.fromRGB(65, 70, 90)
+    tg.Size = UDim2.new(0, ss(50), 0, ss(26))
+    tg.Position = UDim2.new(1, -ss(65), 0.5, -ss(13))
+    tg.Parent = it
+    
+    local tgc = Instance.new("UICorner")
+    tgc.CornerRadius = UDim.new(0, ss(13))
+    tgc.Parent = tg
+    
+    local isOn = false
+    
+    tg.MouseButton1Click:Connect(function()
+        isOn = not isOn
+        tg.Text = isOn and "开" or "关"
+        tg.BackgroundColor3 = isOn and v[3] or Color3.fromRGB(65, 70, 90)
+        State[v[2]] = isOn
+        
+        if v[2] == "R6Leg" then
+            enableR6(isOn)
+        elseif v[2] == "R15Leg" then
+            enableR15(isOn)
+        elseif v[2] == "Graphics" then
+            enableGraphics(isOn)
+        elseif v[2] == "Hat" then
+            hideHat(isOn)
+        end
+    end)
+end
+
+local ft = Instance.new("Frame")
+ft.Size = UDim2.new(1, -ss(20), 0, ss(48))
+ft.Position = UDim2.new(0, ss(10), 1, -ss(50))
+ft.BackgroundColor3 = Color3.fromRGB(28, 30, 38)
+ft.BackgroundTransparency = 0.2
+ft.Parent = mf
+
+local ftc = Instance.new("UICorner")
+ftc.CornerRadius = UDim.new(0, ss(8))
+ftc.Parent = ft
+
+local ftt = Instance.new("TextLabel")
+ftt.Size = UDim2.new(1, -ss(10), 1, 0)
+ftt.Position = UDim2.new(0, ss(5), 0, 0)
+ftt.Text = "【无头功能自启动】断腿/画质可开关"
+ftt.TextColor3 = Color3.fromRGB(180, 190, 220)
+ftt.TextSize = ss(13)
+ftt.Font = Enum.Font.GothamBold
+ftt.BackgroundTransparency = 1
+ftt.Parent = ft
+
+perfText.MouseButton1Click:Connect(function()
+    pcall(function() perfText.Visible = false end)
+    pcall(function() mf.Visible = true end)
+end)
+
+minBtn.MouseButton1Click:Connect(function()
+    pcall(function() mf.Visible = false end)
+    pcall(function() perfText.Visible = true end)
+end)
+
+p.CharacterAdded:Connect(function(c)
+    task.wait(0.5)
+    hideHead(c)
+    makeHeadless()
+    if State.Hat then hideHat(true) end
+    if State.Graphics then enableGraphics(true) end
+    if r6S then
+        task.wait(0.2)
+        createLeg()
+        hideR6Legs(c)
+        r6E = true
+        getgenv().PhantomR6Leg = true
+    end
+    if r15S then
+        task.wait(0.2)
+        hideR15Legs(c)
+        getgenv().PhantomR15Leg = true
+    end
+end)
+
+if p.Character then
+    task.wait(0.5)
+    hideHead(p.Character)
+    makeHeadless()
+end
+
+mf.Visible = false
+perfText.Visible = true
