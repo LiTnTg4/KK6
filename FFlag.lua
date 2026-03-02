@@ -1,6 +1,6 @@
 --[[
-纯自定义 FFlag 编辑器
-只能自己输入 FFlag，没有预设
+FFlag 编辑器 - 通用兼容版
+在 Delta 和其他执行器上都能稳定运行
 ]]
 
 -- 初始化
@@ -9,56 +9,69 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
-local FFLAG_FILE = "FFlagEditor.json"
+local FFLAG_FILE = "FFlags.json"  -- 通用文件名
 
 -- 存储 FFlag
 local fflags = {}
 
+-- 安全执行函数
+local function safe(func, default)
+    local success, result = pcall(func)
+    return success and result or default
+end
+
 -- 加载保存的 FFlag
 local function loadFFlags()
-    if isfile and isfile(FFLAG_FILE) then
-        pcall(function()
-            fflags = HttpService:JSONDecode(readfile(FFLAG_FILE))
+    if safe(function() return isfile(FFLAG_FILE) end) then
+        safe(function()
+            local data = readfile(FFLAG_FILE)
+            fflags = HttpService:JSONDecode(data)
         end)
     end
 end
 
 -- 保存 FFlag
 local function saveFFlags()
-    if writefile then
-        pcall(function()
-            writefile(FFLAG_FILE, HttpService:JSONEncode(fflags))
-        end)
-    end
+    safe(function()
+        writefile(FFLAG_FILE, HttpService:JSONEncode(fflags))
+    end)
 end
 
 -- 加载已有配置
 loadFFlags()
 
--- 设置 FFlag
+-- 设置 FFlag（兼容多种环境）
 local function setFFlag(name, value)
     if not name then return false end
+    
+    -- 保存到本地
     fflags[name] = value
     saveFFlags()
     
+    -- 尝试多种方式设置
     local success = false
-    pcall(function()
+    
+    -- 方式1: setfflag
+    success = safe(function()
         if setfflag then
             setfflag(name, tostring(value))
-            success = true
+            return true
         end
-    end)
+        return false
+    end) or false
     
+    -- 方式2: sethiddenproperty (如果方式1失败)
     if not success then
-        pcall(function()
+        success = safe(function()
             if sethiddenproperty then
                 local network = game:FindService("NetworkClient")
                 if network then
                     sethiddenproperty(network, name, value)
-                    success = true
+                    return true
                 end
             end
-        end)
+            return false
+        end) or false
     end
     
     return success
@@ -70,94 +83,83 @@ local function removeFFlag(name)
     saveFFlags()
 end
 
--- 创建 GUI
+-- 获取所有 FFlag 数量
+local function getFFlagCount()
+    local count = 0
+    for _ in pairs(fflags) do
+        count = count + 1
+    end
+    return count
+end
+
+-- 创建 GUI（兼容性优先）
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "FFlagCustomEditor"
+screenGui.Name = "FFlagEditor"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-pcall(function()
-    screenGui.Parent = game:GetService("CoreGui")
-end)
-pcall(function()
-    if not screenGui.Parent then
-        screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    end
-end)
+screenGui.Parent = safe(function() 
+    return game:GetService("CoreGui") 
+end) or LocalPlayer:WaitForChild("PlayerGui")
 
 -- 主框架
 local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 500, 0, 450)
-mainFrame.Position = UDim2.new(0.5, -250, 0.5, -225)
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-mainFrame.BackgroundTransparency = 0.1
+mainFrame.Size = UDim2.new(0, 400, 0, 450)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -225)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Parent = screenGui
 
--- 圆角
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 8)
-corner.Parent = mainFrame
-
 -- 标题栏
 local titleBar = Instance.new("Frame")
 titleBar.Size = UDim2.new(1, 0, 0, 35)
-titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+titleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 titleBar.BorderSizePixel = 0
 titleBar.Parent = mainFrame
 
-local titleCorner = Instance.new("UICorner")
-titleCorner.CornerRadius = UDim.new(0, 8)
-titleCorner.Parent = titleBar
-
--- 标题文字
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -40, 1, 0)
-title.Position = UDim2.new(0, 15, 0, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "FFlag 自定义编辑器"
+title.Text = "FFlag 编辑器"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.TextXAlignment = Enum.TextXAlignment.Left
-title.Font = Enum.Font.GothamBold
-title.TextSize = 16
+title.Font = Enum.Font.Gotham
+title.TextSize = 15
 title.Parent = titleBar
 
--- 关闭按钮
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 30, 0, 30)
-closeBtn.Position = UDim2.new(1, -35, 0, 2.5)
-closeBtn.BackgroundTransparency = 1
+closeBtn.Size = UDim2.new(0, 35, 0, 35)
+closeBtn.Position = UDim2.new(1, -35, 0, 0)
+closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 closeBtn.Text = "✕"
-closeBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-closeBtn.TextSize = 20
-closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Font = Enum.Font.Gotham
+closeBtn.TextSize = 18
 closeBtn.Parent = titleBar
 
 closeBtn.MouseButton1Click:Connect(function()
     screenGui:Destroy()
 end)
 
--- 添加区域标题
-local addTitle = Instance.new("TextLabel")
-addTitle.Size = UDim2.new(1, -20, 0, 30)
-addTitle.Position = UDim2.new(0, 10, 0, 45)
-addTitle.BackgroundTransparency = 1
-addTitle.Text = "添加 / 更新 FFlag"
-addTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
-addTitle.TextXAlignment = Enum.TextXAlignment.Left
-addTitle.Font = Enum.Font.GothamBold
-addTitle.TextSize = 14
-addTitle.Parent = mainFrame
+-- 添加区域
+local addLabel = Instance.new("TextLabel")
+addLabel.Size = UDim2.new(1, -20, 0, 25)
+addLabel.Position = UDim2.new(0, 10, 0, 45)
+addLabel.BackgroundTransparency = 1
+addLabel.Text = "添加新 FFlag"
+addLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+addLabel.TextXAlignment = Enum.TextXAlignment.Left
+addLabel.Font = Enum.Font.Gotham
+addLabel.TextSize = 14
+addLabel.Parent = mainFrame
 
--- 名称输入框
 local nameBox = Instance.new("TextBox")
 nameBox.Size = UDim2.new(1, -20, 0, 35)
-nameBox.Position = UDim2.new(0, 10, 0, 80)
-nameBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-nameBox.PlaceholderText = "FFlag 名称 (例如: DFIntTaskSchedulerTargetFps)"
+nameBox.Position = UDim2.new(0, 10, 0, 75)
+nameBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+nameBox.PlaceholderText = "FFlag 名称 (如: DFIntTaskSchedulerTargetFps)"
 nameBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
 nameBox.Text = ""
 nameBox.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -166,15 +168,10 @@ nameBox.TextSize = 13
 nameBox.ClearTextOnFocus = false
 nameBox.Parent = mainFrame
 
-local nameCorner = Instance.new("UICorner")
-nameCorner.CornerRadius = UDim.new(0, 6)
-nameCorner.Parent = nameBox
-
--- 值输入框
 local valueBox = Instance.new("TextBox")
 valueBox.Size = UDim2.new(1, -20, 0, 35)
-valueBox.Position = UDim2.new(0, 10, 0, 125)
-valueBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+valueBox.Position = UDim2.new(0, 10, 0, 115)
+valueBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 valueBox.PlaceholderText = "值 (数字、true/false 或文本)"
 valueBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
 valueBox.Text = ""
@@ -184,29 +181,19 @@ valueBox.TextSize = 13
 valueBox.ClearTextOnFocus = false
 valueBox.Parent = mainFrame
 
-local valueCorner = Instance.new("UICorner")
-valueCorner.CornerRadius = UDim.new(0, 6)
-valueCorner.Parent = valueBox
-
--- 添加按钮
 local addBtn = Instance.new("TextButton")
-addBtn.Size = UDim2.new(1, -20, 0, 40)
-addBtn.Position = UDim2.new(0, 10, 0, 170)
+addBtn.Size = UDim2.new(1, -20, 0, 35)
+addBtn.Position = UDim2.new(0, 10, 0, 160)
 addBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-addBtn.Text = "添加 / 更新 FFlag"
+addBtn.Text = "添加 / 更新"
 addBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-addBtn.Font = Enum.Font.GothamBold
+addBtn.Font = Enum.Font.Gotham
 addBtn.TextSize = 14
 addBtn.Parent = mainFrame
 
-local addCorner = Instance.new("UICorner")
-addCorner.CornerRadius = UDim.new(0, 6)
-addCorner.Parent = addBtn
-
--- 状态提示
 local statusLabel = Instance.new("TextLabel")
 statusLabel.Size = UDim2.new(1, -20, 0, 25)
-statusLabel.Position = UDim2.new(0, 10, 0, 215)
+statusLabel.Position = UDim2.new(0, 10, 0, 200)
 statusLabel.BackgroundTransparency = 1
 statusLabel.Text = ""
 statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
@@ -214,62 +201,46 @@ statusLabel.Font = Enum.Font.Gotham
 statusLabel.TextSize = 12
 statusLabel.Parent = mainFrame
 
--- 列表区域标题
-local listTitle = Instance.new("TextLabel")
-listTitle.Size = UDim2.new(1, -20, 0, 30)
-listTitle.Position = UDim2.new(0, 10, 0, 245)
-listTitle.BackgroundTransparency = 1
-listTitle.Text = "当前 FFlag 列表"
-listTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
-listTitle.TextXAlignment = Enum.TextXAlignment.Left
-listTitle.Font = Enum.Font.GothamBold
-listTitle.TextSize = 14
-listTitle.Parent = mainFrame
+-- 列表区域
+local listLabel = Instance.new("TextLabel")
+listLabel.Size = UDim2.new(1, -20, 0, 25)
+listLabel.Position = UDim2.new(0, 10, 0, 230)
+listLabel.BackgroundTransparency = 1
+listLabel.Text = "当前 FFlag 列表 (0)"
+listLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+listLabel.TextXAlignment = Enum.TextXAlignment.Left
+listLabel.Font = Enum.Font.Gotham
+listLabel.TextSize = 14
+listLabel.Parent = mainFrame
 
--- 清空所有按钮
 local clearBtn = Instance.new("TextButton")
-clearBtn.Size = UDim2.new(0, 80, 0, 25)
-clearBtn.Position = UDim2.new(1, -90, 0, 245)
+clearBtn.Size = UDim2.new(0, 70, 0, 25)
+clearBtn.Position = UDim2.new(1, -80, 0, 230)
 clearBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-clearBtn.Text = "清空所有"
+clearBtn.Text = "清空"
 clearBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 clearBtn.Font = Enum.Font.Gotham
-clearBtn.TextSize = 11
+clearBtn.TextSize = 12
 clearBtn.Parent = mainFrame
 
-local clearCorner = Instance.new("UICorner")
-clearCorner.CornerRadius = UDim.new(0, 4)
-clearCorner.Parent = clearBtn
-
--- FFlag 列表区域
 local listFrame = Instance.new("ScrollingFrame")
-listFrame.Size = UDim2.new(1, -20, 0, 130)
-listFrame.Position = UDim2.new(0, 10, 0, 280)
-listFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+listFrame.Size = UDim2.new(1, -20, 0, 140)
+listFrame.Position = UDim2.new(0, 10, 0, 260)
+listFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 listFrame.BorderSizePixel = 0
 listFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-listFrame.ScrollBarThickness = 6
+listFrame.ScrollBarThickness = 4
 listFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 120, 255)
 listFrame.Parent = mainFrame
 
-local listCorner = Instance.new("UICorner")
-listCorner.CornerRadius = UDim.new(0, 6)
-listCorner.Parent = listFrame
-
--- 列表布局
 local listLayout = Instance.new("UIListLayout")
-listLayout.Padding = UDim.new(0, 5)
+listLayout.Padding = UDim.new(0, 2)
 listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 listLayout.Parent = listFrame
 
-local listPadding = Instance.new("UIPadding")
-listPadding.PaddingTop = UDim.new(0, 5)
-listPadding.PaddingBottom = UDim.new(0, 5)
-listPadding.Parent = listFrame
-
--- 刷新 FFlag 列表
-local function refreshFFlagList()
+-- 刷新列表
+local function refreshList()
     -- 清空列表
     for _, child in ipairs(listFrame:GetChildren()) do
         if child:IsA("Frame") then
@@ -280,18 +251,13 @@ local function refreshFFlagList()
     -- 添加每个 FFlag
     for name, value in pairs(fflags) do
         local itemFrame = Instance.new("Frame")
-        itemFrame.Size = UDim2.new(0.95, 0, 0, 50)
-        itemFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        itemFrame.Size = UDim2.new(0.98, 0, 0, 45)
+        itemFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
         itemFrame.Parent = listFrame
         
-        local itemCorner = Instance.new("UICorner")
-        itemCorner.CornerRadius = UDim.new(0, 4)
-        itemCorner.Parent = itemFrame
-        
-        -- FFlag 名称
         local nameLabel = Instance.new("TextLabel")
-        nameLabel.Size = UDim2.new(0.6, 0, 0, 20)
-        nameLabel.Position = UDim2.new(0, 10, 0, 5)
+        nameLabel.Size = UDim2.new(0.7, 0, 0, 20)
+        nameLabel.Position = UDim2.new(0, 5, 0, 2)
         nameLabel.BackgroundTransparency = 1
         nameLabel.Text = name
         nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -301,10 +267,9 @@ local function refreshFFlagList()
         nameLabel.TextWrapped = true
         nameLabel.Parent = itemFrame
         
-        -- FFlag 值
         local valueLabel = Instance.new("TextLabel")
-        valueLabel.Size = UDim2.new(0.6, 0, 0, 20)
-        valueLabel.Position = UDim2.new(0, 10, 0, 25)
+        valueLabel.Size = UDim2.new(0.7, 0, 0, 18)
+        valueLabel.Position = UDim2.new(0, 5, 0, 22)
         valueLabel.BackgroundTransparency = 1
         valueLabel.Text = "值: " .. tostring(value)
         valueLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
@@ -313,10 +278,9 @@ local function refreshFFlagList()
         valueLabel.TextSize = 10
         valueLabel.Parent = itemFrame
         
-        -- 删除按钮
         local removeBtn = Instance.new("TextButton")
-        removeBtn.Size = UDim2.new(0, 50, 0, 30)
-        removeBtn.Position = UDim2.new(1, -60, 0, 10)
+        removeBtn.Size = UDim2.new(0, 45, 0, 30)
+        removeBtn.Position = UDim2.new(1, -50, 0, 7.5)
         removeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
         removeBtn.Text = "删除"
         removeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -324,19 +288,14 @@ local function refreshFFlagList()
         removeBtn.TextSize = 11
         removeBtn.Parent = itemFrame
         
-        local removeCorner = Instance.new("UICorner")
-        removeCorner.CornerRadius = UDim.new(0, 4)
-        removeCorner.Parent = removeBtn
-        
-        -- 删除功能
         removeBtn.MouseButton1Click:Connect(function()
             removeFFlag(name)
-            refreshFFlagList()
+            refreshList()
             statusLabel.Text = "✅ 已删除: " .. name
             statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
         end)
         
-        -- 编辑功能（点击项目可以填入编辑框）
+        -- 点击项目填充到输入框
         itemFrame.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 nameBox.Text = name
@@ -346,10 +305,8 @@ local function refreshFFlagList()
     end
     
     -- 更新画布大小
-    listFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
-    
-    -- 更新标题显示数量
-    listTitle.Text = "当前 FFlag 列表 (" .. table.count(fflags) .. ")"
+    listFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 5)
+    listLabel.Text = "当前 FFlag 列表 (" .. getFFlagCount() .. ")"
 end
 
 -- 添加按钮功能
@@ -369,7 +326,7 @@ addBtn.MouseButton1Click:Connect(function()
         return
     end
     
-    -- 尝试转换值
+    -- 转换值类型
     local processedValue
     if value:lower() == "true" then
         processedValue = true
@@ -387,23 +344,23 @@ addBtn.MouseButton1Click:Connect(function()
         statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
         nameBox.Text = ""
         valueBox.Text = ""
-        refreshFFlagList()
+        refreshList()
     else
-        statusLabel.Text = "❌ 设置失败，可能不支持此 FFlag"
+        statusLabel.Text = "❌ 设置失败 (环境不支持)"
         statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
     end
 end)
 
--- 清空所有按钮功能
+-- 清空按钮功能
 clearBtn.MouseButton1Click:Connect(function()
     fflags = {}
     saveFFlags()
-    refreshFFlagList()
+    refreshList()
     statusLabel.Text = "✅ 已清空所有 FFlag"
     statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
 end)
 
--- 回车键快速添加
+-- 回车快捷添加
 nameBox.FocusLost:Connect(function(enterPressed)
     if enterPressed and nameBox.Text ~= "" then
         valueBox:CaptureFocus()
@@ -417,9 +374,9 @@ valueBox.FocusLost:Connect(function(enterPressed)
 end)
 
 -- 初始化列表
-refreshFFlagList()
+refreshList()
 
--- 使窗口可拖动
+-- 窗口拖动功能
 local dragging = false
 local dragInput
 local dragStart
@@ -430,7 +387,7 @@ titleBar.InputBegan:Connect(function(input)
         dragging = true
         dragStart = input.Position
         startPos = mainFrame.Position
-
+        
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
@@ -457,5 +414,4 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- 返回 GUI
 return screenGui
