@@ -1,5 +1,5 @@
--- ===== Bloxstrap 核心精简版 =====
--- 只有FFlag修改+自动保存，超快注入
+-- ===== Bloxstrap 核心精简版（手动控制）=====
+-- 运行才生效，关掉就失效，下次想用再运行
 
 -- 配置区（在这里添加你要的FFlags）
 local myConfig = {
@@ -21,7 +21,7 @@ local myConfig = {
 
 -- ===== 以下代码不用改 =====
 
--- 创建文件夹
+-- 创建文件夹（保存配置用）
 local folder = "BloxstrapCore"
 if not isfolder(folder) then
     makefolder(folder)
@@ -37,6 +37,7 @@ local function saveConfig()
     end)
     if success then
         writefile(configFile, json)
+        print("✅ 配置已保存")
     end
 end
 
@@ -72,7 +73,7 @@ local function setFFlag(flag, value)
     return success
 end
 
--- 应用所有
+-- 应用所有（手动执行）
 local function applyAll()
     print("\n=== 正在应用FFlags ===")
     local count = 0
@@ -83,41 +84,62 @@ local function applyAll()
     end
     print("✅ 已应用 " .. count .. " 个FFlags")
     print("===================\n")
+    saveConfig()
+    print("⚠️ 注意：FFlag需要重进服务器才能生效！")
 end
 
 -- 全局接口
 getgenv().BloxstrapCore = {
     Config = myConfig,
     
+    -- 修改并保存
     ToggleFFlag = function(flag, value)
         myConfig[flag] = value
         setFFlag(flag, value)
         saveConfig()
     end,
     
+    -- 查看
     GetFFlag = function(flag)
         return myConfig[flag]
     end,
     
+    -- 手动应用（核心！）
     Apply = applyAll,
     
+    -- 显示所有
     List = function()
         print("\n=== 当前配置 ===")
         for k, v in pairs(myConfig) do
             print(k .. " = " .. tostring(v))
         end
         print("================\n")
+    end,
+    
+    -- 清除配置
+    Clear = function()
+        myConfig = {}
+        writefile(configFile, "{}")
+        print("✅ 配置已清空")
     end
 }
 
--- 启动
+-- 只加载配置，不自动应用！
 loadConfig()
-applyAll()
-saveConfig()
 
-print("\n🚀 Bloxstrap核心已启动！")
-print("使用方法：")
-print("  BloxstrapCore.ToggleFFlag('名字', 值)  - 修改/添加")
-print("  BloxstrapCore.GetFFlag('名字')          - 查看")
-print("  BloxstrapCore.List()                    - 显示所有")
-print("  BloxstrapCore.Apply()                    - 重新应用\n")
+print("\n🚀 Bloxstrap核心已启动（手动控制版）")
+print("=================================")
+print("【使用说明】")
+print("1. 先运行这个脚本")
+print("2. 然后执行: BloxstrapCore.Apply()")
+print("3. 重进服务器即可生效")
+print("4. 彻底关掉Roblox后失效")
+print("5. 下次想用再重复1-2-3步")
+print("=================================")
+print("可用命令:")
+print("  BloxstrapCore.Apply()         - ⭐ 应用FFlags")
+print("  BloxstrapCore.ToggleFFlag('名字', 值) - 修改/添加")
+print("  BloxstrapCore.GetFFlag('名字') - 查看")
+print("  BloxstrapCore.List()           - 显示所有")
+print("  BloxstrapCore.Clear()          - 清空配置")
+print("=================================")
