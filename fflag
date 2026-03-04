@@ -1,0 +1,123 @@
+-- ===== Bloxstrap 核心精简版 =====
+-- 只有FFlag修改+自动保存，超快注入
+
+-- 配置区（在这里添加你要的FFlags）
+local myConfig = {
+    -- FPS相关
+    DFIntTaskSchedulerTargetFps = 999,     -- FPS解锁
+    FFlagDebugDisplayFPS = true,            -- 显示FPS
+    
+    -- 网络优化
+    DFIntS2PhysicsSenderRate = 38000,       -- 减少延迟
+    DFIntNetworkPrediction = 120,            -- 网络预测
+    
+    -- 画质调整
+    FFlagDebugSkyGray = true,                -- 灰色天空
+    FIntRenderShadowIntensity = 0,           -- 关闭阴影
+    
+    -- 可以继续添加更多...
+    -- 格式: "FFlag名字" = 值
+}
+
+-- ===== 以下代码不用改 =====
+
+-- 创建文件夹
+local folder = "BloxstrapCore"
+if not isfolder(folder) then
+    makefolder(folder)
+end
+
+local configFile = folder .. "/settings.json"
+local HttpService = game:GetService("HttpService")
+
+-- 保存配置
+local function saveConfig()
+    local success, json = pcall(function()
+        return HttpService:JSONEncode(myConfig)
+    end)
+    if success then
+        writefile(configFile, json)
+    end
+end
+
+-- 加载配置
+local function loadConfig()
+    if isfile(configFile) then
+        local success, data = pcall(function()
+            return HttpService:JSONDecode(readfile(configFile))
+        end)
+        if success and type(data) == "table" then
+            for k, v in pairs(data) do
+                myConfig[k] = v
+            end
+            print("✅ 已加载上次配置")
+        end
+    end
+end
+
+-- 修改FFlag
+local function setFFlag(flag, value)
+    if not setfflag then
+        print("❌ 执行器不支持setfflag")
+        return false
+    end
+    
+    local fflag = flag:gsub("DFInt", ""):gsub("DFFlag", ""):gsub("FFlag", ""):gsub("FInt", "")
+    
+    local success = pcall(function()
+        setfflag(fflag, tostring(value))
+        print("✅ " .. flag .. " = " .. tostring(value))
+    end)
+    
+    return success
+end
+
+-- 应用所有
+local function applyAll()
+    print("\n=== 正在应用FFlags ===")
+    local count = 0
+    for flag, value in pairs(myConfig) do
+        if setFFlag(flag, value) then
+            count = count + 1
+        end
+    end
+    print("✅ 已应用 " .. count .. " 个FFlags")
+    print("===================\n")
+end
+
+-- 全局接口
+getgenv().BloxstrapCore = {
+    Config = myConfig,
+    
+    ToggleFFlag = function(flag, value)
+        myConfig[flag] = value
+        setFFlag(flag, value)
+        saveConfig()
+    end,
+    
+    GetFFlag = function(flag)
+        return myConfig[flag]
+    end,
+    
+    Apply = applyAll,
+    
+    List = function()
+        print("\n=== 当前配置 ===")
+        for k, v in pairs(myConfig) do
+            print(k .. " = " .. tostring(v))
+        end
+        print("================\n")
+    end
+}
+
+-- 启动
+loadConfig()
+applyAll()
+saveConfig()
+
+print("\n🚀 Bloxstrap核心已启动！")
+print("使用方法：")
+print("  BloxstrapCore.ToggleFFlag('名字', 值)  - 修改/添加")
+print("  BloxstrapCore.GetFFlag('名字')          - 查看")
+print("  BloxstrapCore.List()                    - 显示所有")
+print("  BloxstrapCore.Apply()                    - 重新应用\n")
