@@ -1,145 +1,402 @@
--- ===== Bloxstrap 核心精简版（手动控制）=====
--- 运行才生效，关掉就失效，下次想用再运行
+--[[
+    FFlag 花园会话永久生效版
+    功能：执行一次脚本后，在当前花园会话（不关Roblox）中，
+         无论换多少朵花（进多少个游戏），都自动按你的图纸施工
+    要求：关闭花园（退Roblox）后失效，需要重新执行
+]]
 
--- 配置区（在这里添加你要的FFlags）
-local myConfig = {
-    -- FPS相关
-    DFIntTaskSchedulerTargetFps = 999,     -- FPS解锁
-    FFlagDebugDisplayFPS = true,            -- 显示FPS
-    
-    -- 网络优化
-    DFIntS2PhysicsSenderRate = 38000,       -- 减少延迟
-    DFIntNetworkPrediction = 120,            -- 网络预测
-    
-    -- 画质调整
-    FFlagDebugSkyGray = true,                -- 灰色天空
-    FIntRenderShadowIntensity = 0,           -- 关闭阴影
-    
-    -- 可以继续添加更多...
-    -- 格式: "FFlag名字" = 值
-}
+-- 获取环境
+local env = getgenv or function() return _G end
+local myEnv = env()
 
--- ===== 以下代码不用改 =====
+-- 存储当前会话的图纸（只在内存中，不存文件）
+myEnv.activeBlueprints = myEnv.activeBlueprints or {}
 
--- 创建文件夹（保存配置用）
-local folder = "BloxstrapCore"
-if not isfolder(folder) then
-    makefolder(folder)
-end
-
-local configFile = folder .. "/settings.json"
-local HttpService = game:GetService("HttpService")
-
--- 保存配置
-local function saveConfig()
-    local success, json = pcall(function()
-        return HttpService:JSONEncode(myConfig)
-    end)
-    if success then
-        writefile(configFile, json)
-        print("✅ 配置已保存")
-    end
-end
-
--- 加载配置
-local function loadConfig()
-    if isfile(configFile) then
-        local success, data = pcall(function()
-            return HttpService:JSONDecode(readfile(configFile))
-        end)
-        if success and type(data) == "table" then
-            for k, v in pairs(data) do
-                myConfig[k] = v
-            end
-            print("✅ 已加载上次配置")
-        end
-    end
-end
-
--- 修改FFlag
-local function setFFlag(flag, value)
-    if not setfflag then
-        print("❌ 执行器不支持setfflag")
-        return false
-    end
-    
-    local fflag = flag:gsub("DFInt", ""):gsub("DFFlag", ""):gsub("FFlag", ""):gsub("FInt", "")
-    
+-- 创建简单的提示界面（可选）
+local function showNotification(title, text, duration)
     local success = pcall(function()
-        setfflag(fflag, tostring(value))
-        print("✅ " .. flag .. " = " .. tostring(value))
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = title,
+            Text = text,
+            Duration = duration or 5
+        })
     end)
-    
     return success
 end
 
--- 应用所有（手动执行）
-local function applyAll()
-    print("\n=== 正在应用FFlags ===")
-    local count = 0
-    for flag, value in pairs(myConfig) do
-        if setFFlag(flag, value) then
-            count = count + 1
+-- 执行FFlag
+local function executeBlueprints(blueprints)
+    if not blueprints or next(blueprints) == nil then
+        print("📭 没有图纸可执行")
+        return 0
+    end
+    
+    -- 尝试获取setfflag函数
+    local setfflagFunc = setfflag or SetFFlag or function() end
+    
+    local successCount = 0
+    local failCount = 0
+    local results = {}
+    
+    for name, value in pairs(blueprints) do
+        local success = pcall(function()
+            setfflagFunc(name, tostring(value))
+            successCount = successCount + 1
+            table.insert(results, "✅ " .. name .. " = " .. tostring(value))
+        end)
+        
+        if not success then
+            failCount = failCount + 1
+            table.insert(results, "❌ " .. name .. " = " .. tostring(value))
         end
     end
-    print("✅ 已应用 " .. count .. " 个FFlags")
-    print("===================\n")
-    saveConfig()
-    print("⚠️ 注意：FFlag需要重进服务器才能生效！")
+    
+    -- 打印结果
+    print("\n" .. string.rep("=", 50))
+    print("📋 FFlag 执行结果（当前花园会话生效）")
+    for _, result in ipairs(results) do
+        print(result)
+    end
+    print(string.rep("-", 50))
+    print("✅ 成功: " .. successCount .. " 张 | ❌ 失败: " .. failCount .. " 张")
+    print("💡 只要不关闭Roblox，所有游戏都会按这些图纸施工")
+    print(string.rep("=", 50) .. "\n")
+    
+    return successCount, failCount
 end
 
--- 全局接口
-getgenv().BloxstrapCore = {
-    Config = myConfig,
+-- 设置全局钩子，确保每次进游戏都自动应用
+local function setupAutoApply()
+    -- 如果已经设置过，就不再重复设置
+    if myEnv._fflagAutoApplied then
+        return
+    end
     
-    -- 修改并保存
-    ToggleFFlag = function(flag, value)
-        myConfig[flag] = value
-        setFFlag(flag, value)
-        saveConfig()
-    end,
+    -- 标记已设置
+    myEnv._fflagAutoApplied = true
     
-    -- 查看
-    GetFFlag = function(flag)
-        return myConfig[flag]
-    end,
-    
-    -- 手动应用（核心！）
-    Apply = applyAll,
-    
-    -- 显示所有
-    List = function()
-        print("\n=== 当前配置 ===")
-        for k, v in pairs(myConfig) do
-            print(k .. " = " .. tostring(v))
+    -- 监听游戏加载完成
+    local function onGameLoaded()
+        -- 每次进新游戏，自动应用存储的图纸
+        if myEnv.activeBlueprints and next(myEnv.activeBlueprints) ~= nil then
+            print("\n🔄 检测到新游戏，自动应用已存储的图纸...")
+            executeBlueprints(myEnv.activeBlueprints)
+            showNotification("FFlag 自动应用", "已按你的图纸施工", 3)
         end
-        print("================\n")
+    end
+    
+    -- 连接事件
+    if game:GetService("Players").LocalPlayer then
+        onGameLoaded()
+    end
+    
+    game:GetService("Players").PlayerAdded:Connect(function()
+        onGameLoaded()
+    end)
+    
+    print("🔧 自动应用钩子已设置")
+end
+
+-- 解析输入的图纸文本
+local function parseBlueprints(inputText)
+    if not inputText or inputText:gsub("%s", "") == "" then
+        return nil, "输入为空"
+    end
+    
+    local blueprints = {}
+    local errors = {}
+    local lines = inputText:split("\n")
+    
+    for i, line in ipairs(lines) do
+        -- 移除首尾空格，跳过空行和注释
+        local trimmed = line:match("^%s*(.-)%s*$")
+        if trimmed ~= "" and not trimmed:find("^//") and not trimmed:find("^--") then
+            -- 支持格式：名字 = 值 或 名字:值
+            local name, value = trimmed:match("([^=:]+)[=:](.+)")
+            
+            if name and value then
+                -- 清理名字和值
+                name = name:match("^%s*(.-)%s*$")
+                value = value:match("^%s*(.-)%s*$")
+                
+                blueprints[name] = value
+            else
+                table.insert(errors, "第 " .. i .. " 行格式错误: " .. line)
+            end
+        end
+    end
+    
+    if next(blueprints) == nil then
+        return nil, "没有有效的FFlag格式"
+    end
+    
+    return blueprints, errors
+end
+
+-- 创建输入界面
+local function createInputUI()
+    -- 检查是否已存在
+    if myEnv._fflagInputUI then
+        myEnv._fflagInputUI.Enabled = not myEnv._fflagInputUI.Enabled
+        return
+    end
+    
+    -- 创建GUI
+    local screenGui = Instance.new("ScreenGui")
+    local frame = Instance.new("Frame")
+    local title = Instance.new("TextLabel")
+    local textBox = Instance.new("TextBox")
+    local submitBtn = Instance.new("TextButton")
+    local closeBtn = Instance.new("TextButton")
+    local statusLabel = Instance.new("TextLabel")
+    local dragFrame = Instance.new("Frame")
+    
+    -- 设置GUI
+    screenGui.Name = "FFlagPermanentGUI"
+    screenGui.Parent = game.CoreGui
+    screenGui.ResetOnSpawn = false
+    myEnv._fflagInputUI = screenGui
+    
+    frame.Parent = screenGui
+    frame.Size = UDim2.new(0, 400, 0, 320)
+    frame.Position = UDim2.new(0.5, -200, 0.5, -160)
+    frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    frame.BorderSizePixel = 0
+    frame.Active = true
+    frame.Draggable = true
+    
+    -- 标题栏
+    dragFrame.Parent = frame
+    dragFrame.Size = UDim2.new(1, 0, 0, 35)
+    dragFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    dragFrame.BorderSizePixel = 0
+    
+    title.Parent = dragFrame
+    title.Size = UDim2.new(1, -40, 1, 0)
+    title.Position = UDim2.new(0, 10, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "🏗️ FFlag 永久生效版（花园会话）"
+    title.TextColor3 = Color3.fromRGB(220, 220, 220)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 14
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    
+    closeBtn.Parent = dragFrame
+    closeBtn.Size = UDim2.new(0, 35, 0, 35)
+    closeBtn.Position = UDim2.new(1, -35, 0, 0)
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Text = "✕"
+    closeBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextSize = 16
+    
+    closeBtn.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+        myEnv._fflagInputUI = nil
+    end)
+    
+    -- 说明标签
+    local infoLabel = Instance.new("TextLabel")
+    infoLabel.Parent = frame
+    infoLabel.Size = UDim2.new(1, -20, 0, 50)
+    infoLabel.Position = UDim2.new(0, 10, 0, 45)
+    infoLabel.BackgroundTransparency = 1
+    infoLabel.Text = "📌 执行一次，当前花园会话永久生效\n只要不关闭Roblox，换任何游戏都自动按图纸施工"
+    infoLabel.TextColor3 = Color3.fromRGB(150, 220, 255)
+    infoLabel.Font = Enum.Font.Gotham
+    infoLabel.TextSize = 12
+    infoLabel.TextWrapped = true
+    infoLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    -- 输入框标签
+    local inputLabel = Instance.new("TextLabel")
+    inputLabel.Parent = frame
+    inputLabel.Size = UDim2.new(1, -20, 0, 20)
+    inputLabel.Position = UDim2.new(0, 10, 0, 100)
+    inputLabel.BackgroundTransparency = 1
+    inputLabel.Text = "输入 FFlag（一行一个，格式：名字 = 值）"
+    inputLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+    inputLabel.Font = Enum.Font.Gotham
+    inputLabel.TextSize = 11
+    inputLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    -- 输入框
+    textBox.Parent = frame
+    textBox.Size = UDim2.new(1, -20, 0, 100)
+    textBox.Position = UDim2.new(0, 10, 0, 125)
+    textBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    textBox.BorderSizePixel = 0
+    textBox.TextColor3 = Color3.fromRGB(100, 200, 255)
+    textBox.Font = Enum.Font.Code
+    textBox.TextSize = 12
+    textBox.TextXAlignment = Enum.TextXAlignment.Left
+    textBox.TextYAlignment = Enum.TextYAlignment.Top
+    textBox.ClearTextOnFocus = false
+    textBox.MultiLine = true
+    textBox.TextWrapped = true
+    textBox.PlaceholderText = [[示例（一行一个）：
+DFIntTaskSchedulerTargetFps = 120
+FFlagDisablePostFx = true
+FIntRenderShadowIntensity = 0
+FIntDebugTextureManagerSkipMips = 8]]
+    
+    -- 提交按钮
+    submitBtn.Parent = frame
+    submitBtn.Size = UDim2.new(1, -20, 0, 40)
+    submitBtn.Position = UDim2.new(0, 10, 0, 235)
+    submitBtn.BackgroundColor3 = Color3.fromRGB(70, 130, 200)
+    submitBtn.BorderSizePixel = 0
+    submitBtn.Text = "📤 递交图纸（永久生效至关闭Roblox）"
+    submitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    submitBtn.Font = Enum.Font.GothamBold
+    submitBtn.TextSize = 14
+    
+    -- 状态标签
+    statusLabel.Parent = frame
+    statusLabel.Size = UDim2.new(1, -20, 0, 25)
+    statusLabel.Position = UDim2.new(0, 10, 0, 285)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Text = "等待输入..."
+    statusLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+    statusLabel.Font = Enum.Font.Gotham
+    statusLabel.TextSize = 11
+    
+    -- 添加圆角
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, 8)
+    uiCorner.Parent = frame
+    
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 6)
+    btnCorner.Parent = submitBtn
+    
+    -- 绑定提交按钮
+    submitBtn.MouseButton1Click:Connect(function()
+        local inputText = textBox.Text
+        statusLabel.Text = "📦 正在解析图纸..."
+        statusLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+        
+        -- 解析输入
+        local blueprints, errors = parseBlueprints(inputText)
+        
+        if errors and #errors > 0 then
+            print("\n⚠️ 解析警告：")
+            for _, err in ipairs(errors) do
+                print("  " .. err)
+            end
+        end
+        
+        if not blueprints then
+            statusLabel.Text = "❌ " .. (errors and errors[1] or "解析失败")
+            statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+            return
+        end
+        
+        -- 存储到全局（内存中）
+        myEnv.activeBlueprints = blueprints
+        
+        -- 执行
+        local success, fail = executeBlueprints(blueprints)
+        
+        -- 更新状态
+        statusLabel.Text = "✅ 已存储 " .. success + fail .. " 张图纸，当前花园会话永久生效"
+        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+        
+        -- 显示通知
+        showNotification("FFlag 设置成功", "已存储 " .. success + fail .. " 张图纸，换游戏自动生效", 3)
+    end)
+    
+    -- 设置自动应用钩子
+    setupAutoApply()
+    
+    return screenGui
+end
+
+-- ===== 主程序 =====
+print("\n" .. string.rep("=", 60))
+print("🏗️  FFlag 花园会话永久生效版")
+print(string.rep("=", 60))
+print("💡 使用说明：")
+print("   1. 输入图纸并递交")
+print("   2. 在当前花园会话（不关Roblox）中永久生效")
+print("   3. 换任何游戏都自动按图纸施工")
+print("   4. 关闭Roblox后失效，需要重新执行")
+print(string.rep("=", 60) .. "\n")
+
+-- 如果已经有存储的图纸，提示用户
+if myEnv.activeBlueprints and next(myEnv.activeBlueprints) ~= nil then
+    print("📋 当前已有存储的图纸：")
+    for name, value in pairs(myEnv.activeBlueprints) do
+        print("   " .. name .. " = " .. tostring(value))
+    end
+    print("\n💡 这些图纸会在当前花园会话中自动生效")
+    
+    -- 询问是否重新输入
+    print("\n🔄 如果你想更新图纸，请关闭此界面重新运行脚本")
+end
+
+-- 创建输入界面
+createInputUI()
+
+-- 暴露接口到全局
+myEnv.FFlagPermanent = {
+    -- 手动设置图纸
+    set = function(blueprints)
+        if type(blueprints) == "table" then
+            myEnv.activeBlueprints = blueprints
+            executeBlueprints(blueprints)
+            showNotification("FFlag 已更新", "新图纸已生效", 3)
+        elseif type(blueprints) == "string" then
+            local parsed, errors = parseBlueprints(blueprints)
+            if parsed then
+                myEnv.activeBlueprints = parsed
+                executeBlueprints(parsed)
+                showNotification("FFlag 已更新", "新图纸已生效", 3)
+            else
+                print("❌ 解析失败: " .. (errors and errors[1] or "未知错误"))
+            end
+        end
     end,
     
-    -- 清除配置
-    Clear = function()
-        myConfig = {}
-        writefile(configFile, "{}")
-        print("✅ 配置已清空")
+    -- 查看当前图纸
+    list = function()
+        if myEnv.activeBlueprints and next(myEnv.activeBlueprints) ~= nil then
+            print("\n📋 当前存储的图纸：")
+            for name, value in pairs(myEnv.activeBlueprints) do
+                print("   " .. name .. " = " .. tostring(value))
+            end
+            print("")
+        else
+            print("📭 当前没有存储的图纸")
+        end
+    end,
+    
+    -- 清空图纸
+    clear = function()
+        myEnv.activeBlueprints = {}
+        print("🗑️ 已清空所有图纸")
+    end,
+    
+    -- 显示界面
+    show = function()
+        if myEnv._fflagInputUI then
+            myEnv._fflagInputUI.Enabled = true
+        else
+            createInputUI()
+        end
+    end,
+    
+    -- 隐藏界面
+    hide = function()
+        if myEnv._fflagInputUI then
+            myEnv._fflagInputUI.Enabled = false
+        end
     end
 }
 
--- 只加载配置，不自动应用！
-loadConfig()
-
-print("\n🚀 Bloxstrap核心已启动（手动控制版）")
-print("=================================")
-print("【使用说明】")
-print("1. 先运行这个脚本")
-print("2. 然后执行: BloxstrapCore.Apply()")
-print("3. 重进服务器即可生效")
-print("4. 彻底关掉Roblox后失效")
-print("5. 下次想用再重复1-2-3步")
-print("=================================")
-print("可用命令:")
-print("  BloxstrapCore.Apply()         - ⭐ 应用FFlags")
-print("  BloxstrapCore.ToggleFFlag('名字', 值) - 修改/添加")
-print("  BloxstrapCore.GetFFlag('名字') - 查看")
-print("  BloxstrapCore.List()           - 显示所有")
-print("  BloxstrapCore.Clear()          - 清空配置")
-print("=================================")
+print("✅ 脚本加载完成")
+print("💡 界面已显示，你也可以在控制台调用：")
+print("   FFlagPermanent.list()      - 查看当前图纸")
+print("   FFlagPermanent.clear()     - 清空图纸")
+print("   FFlagPermanent.set({...})  - 直接设置图纸")
+print(string.rep("=", 60))
