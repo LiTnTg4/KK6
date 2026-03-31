@@ -1029,11 +1029,7 @@ local function createMenu()
             local perfParent = player.PlayerGui:FindFirstChild("WastelandPerfMonitor")
             if perfParent then perfParent:Destroy() end
             
-            local hint = Instance.new("Hint")
-            hint.Text = "✅ 脚本已卸载"
-            hint.Parent = workspace
-            task.delay(3, function() if hint and hint.Parent then hint:Destroy() end end)
-        end)
+            
         
         unloadFrame.MouseEnter:Connect(function() unloadFrame.BackgroundColor3 = Color3.fromRGB(80, 35, 25) end)
         unloadFrame.MouseLeave:Connect(function() unloadFrame.BackgroundColor3 = Color3.fromRGB(45, 20, 15) end)
