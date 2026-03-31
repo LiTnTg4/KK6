@@ -750,7 +750,7 @@ local function createMenu()
         titleBar.Parent = mf
         
         uiElements.titleText = Instance.new("TextLabel")
-        uiElements.titleText.Text = "Reming祝大家天天开心。 v2.1"
+        uiElements.titleText.Text = "Reming祝大家天天开心❤️"
         uiElements.titleText.TextColor3 = Color3.fromRGB(255, 180, 80)
         uiElements.titleText.TextSize = getFontSize(FONT_SIZES.title)
         uiElements.titleText.Font = Enum.Font.Code
@@ -1048,7 +1048,7 @@ local function createMenu()
         footer.Parent = mf
         
         uiElements.footerText = Instance.new("TextLabel")
-        uiElements.footerText.Text = "> Reming <"
+        uiElements.footerText.Text = "> Reming V2.1<"
         uiElements.footerText.TextColor3 = Color3.fromRGB(150, 100, 60)
         uiElements.footerText.TextSize = getFontSize(FONT_SIZES.footer)
         uiElements.footerText.Font = Enum.Font.Code
