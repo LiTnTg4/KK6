@@ -425,7 +425,7 @@ local function createMenu()
     local BASE_HEIGHT = 580
     
     local FONT_SIZES = {
-        title = 22,
+        title = 15,
         button = 18,
         userName = 18,
         timer = 14,
