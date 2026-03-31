@@ -1027,9 +1027,7 @@ local function createMenu()
             -- 删除GUI
             screenGui:Destroy()
             local perfParent = player.PlayerGui:FindFirstChild("WastelandPerfMonitor")
-            if perfParent then perfParent:Destroy() end
-            
-            
+            if perfParent then perfParent:Destroy() end 
         
         unloadFrame.MouseEnter:Connect(function() unloadFrame.BackgroundColor3 = Color3.fromRGB(80, 35, 25) end)
         unloadFrame.MouseLeave:Connect(function() unloadFrame.BackgroundColor3 = Color3.fromRGB(45, 20, 15) end)
