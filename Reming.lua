@@ -750,7 +750,7 @@ local function createMenu()
         titleBar.Parent = mf
         
         uiElements.titleText = Instance.new("TextLabel")
-        uiElements.titleText.Text = "废土终端 v1.0"
+        uiElements.titleText.Text = "Reming祝大家天天开心。 v2.1"
         uiElements.titleText.TextColor3 = Color3.fromRGB(255, 180, 80)
         uiElements.titleText.TextSize = getFontSize(FONT_SIZES.title)
         uiElements.titleText.Font = Enum.Font.Code
@@ -1048,7 +1048,7 @@ local function createMenu()
         footer.Parent = mf
         
         uiElements.footerText = Instance.new("TextLabel")
-        uiElements.footerText.Text = "> 废土终端模式 <"
+        uiElements.footerText.Text = "> Reming <"
         uiElements.footerText.TextColor3 = Color3.fromRGB(150, 100, 60)
         uiElements.footerText.TextSize = getFontSize(FONT_SIZES.footer)
         uiElements.footerText.Font = Enum.Font.Code
@@ -1220,7 +1220,7 @@ local function showAnnouncement(title, content, contentPosition, duration, onCon
     titleLabel.Size = UDim2.new(1, -ss(20), 0, ss(55))
     titleLabel.Position = UDim2.new(0, ss(10), 0, ss(10))
     titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = title or "💧 系统公告"
+    titleLabel.Text = title or " "
     titleLabel.TextColor3 = Color3.fromRGB(160, 190, 220)
     titleLabel.TextSize = ss(24)
     titleLabel.Font = Enum.Font.Gotham
