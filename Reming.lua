@@ -1423,8 +1423,8 @@ end)
 -- 显示公告弹窗
 task.spawn(function()
     showAnnouncement(
-        "💧 公告",
-        "Reming是tsb最忧郁之人\n\n本次更新新加了这个公告和修改了布局\n\n下次更新添加防甩飞\n\n还有FF配置功能\n\n━━━━━━━━━━━━\n\n我太急吧忧郁了\n\n",
+        "",
+        "💧Reming是tsb最忧郁之人\n\n本次更新新加了这个公告和修改了布局\n\n下次更新添加防甩飞\n\n还有FF配置功能\n\n━━━━━━━━━━━━\n\n我太急吧忧郁了\n\n",
         "center",
         6,
         function() end
