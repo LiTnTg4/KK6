@@ -1,4 +1,4 @@
--- 废土终端 - 完整单脚本版（包含所有功能）
+-- 废土终端 - 完整单脚本版（含公告 + 卸载修复）
 -- 复制整个代码，在 Roblox 的开发者控制台(F9)中运行
 
 local Players = game:GetService("Players")
@@ -13,6 +13,9 @@ local State = {
     R15Leg = false,
     Hat = false
 }
+
+-- 卸载标志
+local isUnloaded = false
 
 -- ==================== 无头效果模块 ====================
 local Headless = {active = true}
@@ -31,9 +34,11 @@ function Headless.enable(bool)
     end
 end
 
+-- 无头效果线程（卸载时停止）
 task.spawn(function()
-    while true do
+    while not isUnloaded do
         task.wait(1)
+        if isUnloaded then break end
         local c = player.Character
         if c then
             local head = c:FindFirstChild("Head")
@@ -1012,23 +1017,32 @@ local function createMenu()
             if State.Graphics then Graphics.enable(false) end
             if State.Hat then HatHider.enable(false) end
             
-            -- 恢复角色
+            -- 恢复角色头部
             local c = player.Character
             if c then
                 local head = c:FindFirstChild("Head")
-                if head then head.Transparency = 0; head.CanCollide = true end
+                if head then
+                    head.Transparency = 0
+                    head.CanCollide = true
+                end
                 local legParts = {"RightUpperLeg", "RightLowerLeg", "RightFoot", "LeftUpperLeg", "LeftLowerLeg", "LeftFoot", "Right Leg", "Left Leg"}
                 for _, partName in ipairs(legParts) do
                     local part = c:FindFirstChild(partName)
-                    if part then part.Transparency = 0; part.Material = Enum.Material.SmoothPlastic end
+                    if part then
+                        part.Transparency = 0
+                        part.Material = Enum.Material.SmoothPlastic
+                    end
                 end
             end
+            
+            -- 设置卸载标志，停止后台线程
+            isUnloaded = true
             
             -- 删除GUI
             screenGui:Destroy()
             local perfParent = player.PlayerGui:FindFirstChild("WastelandPerfMonitor")
             if perfParent then perfParent:Destroy() end
-end） 
+        end)
         
         unloadFrame.MouseEnter:Connect(function() unloadFrame.BackgroundColor3 = Color3.fromRGB(80, 35, 25) end)
         unloadFrame.MouseLeave:Connect(function() unloadFrame.BackgroundColor3 = Color3.fromRGB(45, 20, 15) end)
@@ -1043,7 +1057,7 @@ end）
         footer.Parent = mf
         
         uiElements.footerText = Instance.new("TextLabel")
-        uiElements.footerText.Text = "> Reming V2.1<"
+        uiElements.footerText.Text = "> Reming V2.1 <"
         uiElements.footerText.TextColor3 = Color3.fromRGB(150, 100, 60)
         uiElements.footerText.TextSize = getFontSize(FONT_SIZES.footer)
         uiElements.footerText.Font = Enum.Font.Code
@@ -1215,7 +1229,7 @@ local function showAnnouncement(title, content, contentPosition, duration, onCon
     titleLabel.Size = UDim2.new(1, -ss(20), 0, ss(55))
     titleLabel.Position = UDim2.new(0, ss(10), 0, ss(10))
     titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = title or " "
+    titleLabel.Text = title or "💧 公告"
     titleLabel.TextColor3 = Color3.fromRGB(160, 190, 220)
     titleLabel.TextSize = ss(24)
     titleLabel.Font = Enum.Font.Gotham
@@ -1392,21 +1406,15 @@ local function showAnnouncement(title, content, contentPosition, duration, onCon
 end
 
 -- ==================== 启动 ====================
--- 开启无头效果
 Headless.enable(true)
 
--- 初始化性能监控
 local perf = createPerfMonitor()
-
--- 初始化菜单
 local menu = createMenu()
 
--- 设置菜单最小化按钮回调
 menu.setMinButtonCallback(function()
     menu.hide()
 end)
 
--- 点击性能监控打开/关闭菜单
 perf.textButton.MouseButton1Click:Connect(function()
     if menu.isVisible() then
         menu.hide()
@@ -1418,18 +1426,19 @@ end)
 -- 显示公告弹窗
 task.spawn(function()
     showAnnouncement(
-        "",
-        "💧Reming是tsb最忧郁之人\n\n本次更新新加了这个公告和修改了布局\n\n下次更新添加防甩飞\n\n还有FF配置功能\n\n━━━━━━━━━━━━\n\n我太急吧忧郁了\n\n",
+        "💧 公告",
+        "Reming是tsb最忧郁之人\n\n本次更新新加了这个公告和修改了布局\n\n下次更新添加防甩飞\n\n还有FF配置功能\n\n━━━━━━━━━━━━\n\n我太急吧忧郁了\n\n",
         "center",
         6,
         function() end
     )
 end)
 
--- 移除脸部贴图
+-- 移除脸部贴图线程（卸载时停止）
 task.spawn(function()
-    while true do
+    while not isUnloaded do
         task.wait(1)
+        if isUnloaded then break end
         local c = player.Character
         if c then
             for _, obj in c:GetDescendants() do
@@ -1444,14 +1453,6 @@ task.spawn(function()
     end
 end)
 
--- 更新断腿效果
 RunService.Heartbeat:Connect(function()
     LegEffects.update()
 end)
-
-print("✅ 废土终端已启动")
-print("📊 性能监控: 16px 可拖拽")
-print("🎮 菜单: 380x580 紧凑尺寸")
-print("🖱️ 点击FPS面板打开/关闭菜单")
-print("🌧️ 公告弹窗已显示，等待6秒后可确认")
-print("🦿 断腿效果 | 🎨 画质优化 | 🎩 隐藏饰品 均已就绪")
